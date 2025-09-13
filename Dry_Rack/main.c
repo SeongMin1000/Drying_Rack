@@ -21,6 +21,7 @@ int main(void)
     pwm_init();
     USART_init();
 	timer_init();
+	lcd_init();
 	
 	sei(); // 모든 초기화가 끝난 후 전역 인터럽트 활성화
 
