@@ -6,13 +6,21 @@
  */ 
 
 #include <avr/io.h>
+#include "adc.h"
+#include "pwm.h"
+#include "usart.h"
 
 
 int main(void)
 {
     /* Replace with your application code */
+    ADC_init();
+    pwm_init();
+    USART_init();
+
     while (1) 
     {
+		
     }
 }
 

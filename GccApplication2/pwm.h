@@ -13,5 +13,6 @@
 
 void pwm_init();
 void pwm_set_speed(uint16_t speed);
+void pwm_set_duty_from_adc(uint16_t adc_value);
 
 #endif /* PWM_H_ */

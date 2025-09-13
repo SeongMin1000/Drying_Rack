@@ -32,3 +32,13 @@ void pwm_set_speed(uint16_t speed) {
 	}
 	OCR1A = speed;
 }
+
+void pwm_set_duty_from_adc(uint16_t adc_value)
+{
+    // ADC 값(0~1023)을 PWM 듀티 사이클 값(0~4999)으로 변환.
+    // 계산 중 오버플로우를 방지하기 위해 32비트(unsigned long)로 형변환
+    uint16_t speed = (uint16_t)(((unsigned long)adc_value * 4999L) / 1023L);
+    
+    //pwm_set_speed 함수를 호출하여 실제 듀티 사이클을 설정
+    pwm_set_speed(speed);
+}
