@@ -61,6 +61,10 @@ void control_fan_mode(uint16_t* moist_adc_values, uint16_t temp_adc, uint8_t fan
 
 	// 모드별 동작
 	switch (fan_mode) {
+		case 0: // 자동
+		pwm_set_duty_from_adc(moist_adc);
+		break;
+		
 		case 1: // 강
 		pwm_set_speed(4000); // 80% duty
 		break;
