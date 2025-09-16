@@ -16,7 +16,7 @@
 uint16_t most_moist(uint16_t *moist_values){
 	uint16_t most_moist_value = moist_values[0];
 	for(int i = 0; i < MOISTURE_CHANNELS; i++){
-		if(most_moist_value < moist_values[i]) 
+		if(most_moist_value > moist_values[i]) 
 			most_moist_value = moist_values[i];
 	}
 	
@@ -26,11 +26,19 @@ uint16_t most_moist(uint16_t *moist_values){
 //모드 설정
 //0 : 바람 세기 설정 모드, 1 : 예약 모드, 2 : 그냥 모드
 uint8_t set_mode(void){
-	if(start_flag == 1) {
-		if(reserve_hours > 0) return 0;
-		else if(fan_mode > 0) return 1;
-		else return 2;
-	}
+	start_flag = 0;
+	
+	if(fan_mode > 0) return 0;
+	else if(reserve_hours > 0) return 1;
+	else return 2;
+}
+
+
+//개별 빨래 건조 완료시 LED 출력
+//PC0(ADC1) 건조 완료시 - PC1 LED 켜짐
+//PC3(ADC2) 건조 완료시 - PC2 LED 켜짐
+void individual_complete(){
+	
 }
 
 //빨래 젖을 수록 ADC 값 낮음
@@ -61,16 +69,12 @@ void control_fan_mode(uint16_t* moist_adc_values, uint16_t temp_adc, uint8_t fan
 
 	// 모드별 동작
 	switch (fan_mode) {
-		case 0: // 자동
-		pwm_set_duty_from_adc(moist_adc);
-		break;
-		
 		case 1: // 강
 		pwm_set_speed(4000); // 80% duty
 		break;
 
 		case 2: // 중
-		pwm_set_speed(3000); // 60% duty
+		pwm_set_speed(3000); // 60% duty	
 		break;
 
 		case 3: // 약
@@ -86,3 +90,25 @@ void control_fan_mode(uint16_t* moist_adc_values, uint16_t temp_adc, uint8_t fan
 		break;
 	}
 }
+
+//기본 자동 시작 모드
+void auto_mode(uint16_t* moist_adc_values, uint16_t temp_adc)
+{
+	ADC_input(moist_adc_values);
+	uint16_t moist_adc = most_moist(moist_adc_values);
+	
+	// 팬 온도 과열 체크 (예: 70도 이상이라고 가정 → ADC 800 이상)
+	if (temp_adc > 800) {
+		pwm_set_speed(0);   // 팬 정지
+		return;
+	}
+
+	// 다 말랐다고 판단 (예: ADC > 950)
+	if (moist_adc > 950) {
+		pwm_set_speed(0);   // 팬 끄고 절전
+		return;
+	}
+	
+	pwm_set_duty_from_adc(moist_adc);
+}
+
