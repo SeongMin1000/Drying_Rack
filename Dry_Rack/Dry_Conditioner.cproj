@@ -156,10 +156,19 @@
     <Compile Include="mode.c">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="mode.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="pwm.c">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="pwm.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="scheduler.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="scheduler.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="timer.c">

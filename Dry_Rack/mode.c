@@ -8,6 +8,7 @@
 #include "external_interrupt.h"
 #include "pwm.h"
 #include "adc.h"
+#include "mode.h"
 
 
 //ADC1 : PC0, ADC2 : PC3

@@ -14,6 +14,5 @@
 void USART_init();
 void USART_transmit(unsigned char data);
 void USART_transmit_string(const char* str);
-void USART_Switch_print_pin_states(uint32_t pin_states);
 
 #endif /* USART_H_ */
