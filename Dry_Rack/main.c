@@ -11,6 +11,7 @@
 #include "lcd.h"
 #include "gpio.h" 
 #include "external_interrupt.h"
+#include "mode.h" 
 
 // --- 예약 모드 시간 설정 (밀리초 단위) ---
 const unsigned long FAN_ON_DURATION_MS      = 3UL * 60 * 1000;  // 팬 작동 시간: 3분
