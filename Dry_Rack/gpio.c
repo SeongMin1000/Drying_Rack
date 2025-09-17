@@ -8,6 +8,7 @@
 
 #include "gpio.h"
 
+
 // --- 핀 정의 ---
 // LED 핀 (PORTD)
 #define LED_DDR     DDRC
@@ -19,6 +20,8 @@
 #define BUZZER_DDR  DDRB
 #define BUZZER_PORT PORTB
 #define BUZZER_PIN  DDB0
+
+
 
 
 void gpio_init(void)

@@ -7,6 +7,10 @@
 
 #include "external_interrupt.h"
 
+#define PD2		2
+#define PD3		3
+#define PD7		7
+
 volatile uint8_t fan_mode = 0;       // 0=자동, 1=상,2=중,3=하,4=저소음
 volatile uint8_t reserve_hours = 0;  // 예약 시간 (0=없음, 1~8시간)
 volatile uint8_t start_flag = 0;
