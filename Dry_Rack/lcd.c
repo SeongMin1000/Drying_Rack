@@ -55,13 +55,13 @@ void lcd_clear(void)
 	_delay_ms(2);
 }
 
-void lcd_i2c_goto_xy(uint8_t x, uint8_t y)
+void lcd_goto_xy(uint8_t x, uint8_t y)
 {
 	uint8_t address = (y == 0) ? 0x80 : 0xC0;
 	lcd_send_byte(address + x, 0);
 }
 
-void lcd_i2c_puts(const char *str)
+void lcd_puts(const char *str)
 {
 	while(*str)
 	{

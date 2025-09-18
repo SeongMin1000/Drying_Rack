@@ -5,7 +5,7 @@
 // 버튼 디바운싱을 위한 최소 시간 간격
 #define DEBOUNCE_DELAY 200
 
-volatile uint8_t fan_mode = 0;       // 1=상,2=중,3=하,4=저소음
+volatile uint8_t fan_mode = 0;       // 1=강,2=중,3=약,4=저소음
 volatile uint8_t reserve_hours = 0;  // 예약 시간 (0=없음, 1~8시간)
 volatile uint8_t start_flag = 0;
 

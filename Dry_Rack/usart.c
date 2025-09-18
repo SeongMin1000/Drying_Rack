@@ -2,7 +2,7 @@
 #include "usart.h"
 #include <stdio.h>
 
-#define UBRR_VALUE ((F_CPU / (16UL * BAUD)) - 1) 
+#define UBRR_VALUE ((F_CPU / (16UL * USART_BAUD_RATE)) - 1) 
 
 void USART_init() {
 	/* Baud rate 설정 */
