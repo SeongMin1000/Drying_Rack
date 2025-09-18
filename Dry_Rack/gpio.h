@@ -1,12 +1,4 @@
-﻿/*
- * gpio.h
- *
- * Created: 09-13 (토) 오후 9:13:11
- *  Author: csm
- */ 
-
-
-#ifndef GPIO_H_
+﻿#ifndef GPIO_H_
 #define GPIO_H_
 
 #include <avr/io.h>

@@ -1,10 +1,4 @@
-﻿/*
- * timer.c
- *
- * Created: 09-13 (토) 오후 5:13:23
- *  Author: csm
- */ 
-#include "timer.h"
+﻿ #include "timer.h"
 
 static volatile unsigned long g_millis = 0;
 

@@ -1,12 +1,4 @@
-﻿/*
- * i2c.h
- *
- * Created: 09-13 (토) 오후 8:24:28
- *  Author: csm
- */ 
-
-
-#ifndef I2C_H_
+﻿#ifndef I2C_H_
 #define I2C_H_
 
 #include <avr/io.h>

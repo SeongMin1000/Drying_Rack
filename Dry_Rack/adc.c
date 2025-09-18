@@ -1,10 +1,4 @@
-﻿/*
- * adc.c
- *
- * Created: 09-11 (목) 오후 3:24:40
- *  Author: csm
- */ 
-
+﻿#include "config.h"
 #include "adc.h"
 
 //현재는 젖은 빨래를 2개만 감지하도록 했지만

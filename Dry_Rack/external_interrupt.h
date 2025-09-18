@@ -1,11 +1,4 @@
-﻿/*
- * external_interrupt.h
- *
- * Created: 2025-09-14 오후 7:59:59
- *  Author: KimHyeeun
- */ 
-
-#include <avr/io.h>
+﻿#include <avr/io.h>
 #include <avr/interrupt.h>
 
 #ifndef EXTERNAL_INTERRUPT_H_

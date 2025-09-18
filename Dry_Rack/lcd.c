@@ -1,15 +1,6 @@
-﻿/*
- * lcd.c
- *
- * Created: 09-13 (토) 오후 8:39:21
- *  Author: csm
- */ 
-// lcd_i2c.c
+﻿#include "config.h"
 #include "lcd.h"
 #include "i2c.h"
-
-// I2C LCD 모듈 주소 (모듈에 따라 0x3F 또는 0x27)
-#define LCD_I2C_ADDRESS (0x27 << 1)
 
 // PCF8574 I/O 확장 칩의 핀맵
 #define LCD_RS (1 << 0)

@@ -1,28 +1,5 @@
-﻿/*
- * gpio.c
- *
- * Created: 09-13 (토) 오후 9:12:56
- *  Author: csm
- */ 
-// gpio.c
-
+﻿#include "config.h"
 #include "gpio.h"
-
-
-// --- 핀 정의 ---
-// LED 핀 (PORTD)
-#define LED_DDR     DDRC
-#define LED_PORT    PORTC
-#define LED0_PIN    DDC1
-#define LED1_PIN    DDC2
-
-// 부저 핀 (PORTB)
-#define BUZZER_DDR  DDRB
-#define BUZZER_PORT PORTB
-#define BUZZER_PIN  DDB0
-
-
-
 
 void gpio_init(void)
 {

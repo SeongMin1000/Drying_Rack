@@ -1,14 +1,7 @@
-﻿/*
- * usart.c
- *
- * Created: 09-11 (목) 오후 3:19:59
- *  Author: csm
- */
+﻿#include "config.h"
 #include "usart.h"
 #include <stdio.h>
 
-#define F_CPU 16000000UL // 16MHz 시스템 클럭
-#define BAUD 115200        // 115200 Baud Rate
 #define UBRR_VALUE ((F_CPU / (16UL * BAUD)) - 1) 
 
 void USART_init() {

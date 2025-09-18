@@ -1,15 +1,6 @@
-﻿/*
- * lcd.h
- *
- * Created: 09-13 (토) 오후 8:39:30
- *  Author: csm
- */ 
-
-
-#ifndef LCD_H_
+﻿#ifndef LCD_H_
 #define LCD_H_
 
-#define F_CPU 16000000UL
 #include <avr/io.h>
 #include <util/delay.h>
 

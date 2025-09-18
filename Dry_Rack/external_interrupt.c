@@ -1,15 +1,5 @@
-﻿/*
- * external_interrupt.c
- *
- * Created: 2025-09-14 오후 7:20:26
- *  Author: KimHyeeun
- */ 
-
+﻿#include "config.h"
 #include "external_interrupt.h"
-
-#define PD2		2
-#define PD3		3
-#define PD7		7
 
 volatile uint8_t fan_mode = 0;       // 0=자동, 1=상,2=중,3=하,4=저소음
 volatile uint8_t reserve_hours = 0;  // 예약 시간 (0=없음, 1~8시간)
@@ -24,7 +14,7 @@ ISR(INT0_vect) {
 
 // ================= 바람세기 버튼 ISR (PD7 / INT7) =================
 ISR(PCINT2_vect) {
-	if (!(PIND & (1 << PD7))) {
+	if (!(PIND & (1 << FAN_MODE_BUTTON_PIN))) {
 		fan_mode++;
 		if (fan_mode > 4) fan_mode = 1;
 	}
@@ -39,8 +29,8 @@ ISR(INT1_vect) {
 // ================= 버튼 및 인터럽트 초기화 =================
 void button_init(void) {
 	// PD2(INT0), PD3(INT1), PD7(INT7) 입력 + 풀업
-	DDRD &= ~((1 << PD2) | (1 << PD3) | (1 << PD7));
-	PORTD |= (1 << PD2) | (1 << PD3) | (1 << PD7);
+	DDRD &= ~((1 << RESERVE_BUTTON_PIN) | (1 << START_BUTTON_PIN) | (1 << FAN_MODE_BUTTON_PIN));
+	PORTD |= (1 << RESERVE_BUTTON_PIN) | (1 << START_BUTTON_PIN) | (1 << FAN_MODE_BUTTON_PIN);
 
 	// 외부 인터럽트 활성화
 	EIMSK |= (1 << INT0) | (1 << INT1);

@@ -1,10 +1,4 @@
-﻿/*
- * i2c.c
- *
- * Created: 09-13 (토) 오후 8:24:14
- *  Author: csm
- */ 
-#include "i2c.h"
+﻿#include "i2c.h"
 
 // 100kHz SCL 주파수 설정 (F_CPU = 16MHz)
 void i2c_init(void)

@@ -1,12 +1,4 @@
-﻿/*
- * mode.h
- *
- * Created: 09-16 (화) 오전 11:17:43
- *  Author: csm
- */ 
-
-
-#ifndef MODE_H_
+﻿#ifndef MODE_H_
 #define MODE_H_
 
 #include <avr/io.h>

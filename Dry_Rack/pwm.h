@@ -1,12 +1,4 @@
-﻿/*
- * pwm.h
- *
- * Created: 09-11 (목) 오후 3:15:15
- *  Author: csm
- */ 
-
-
-#ifndef PWM_H_
+﻿#ifndef PWM_H_
 #define PWM_H_
 
 #include <avr/io.h>
