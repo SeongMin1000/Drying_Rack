@@ -23,7 +23,7 @@
 #define BUZZER_PORT PORTB
 #define BUZZER_PIN  DDB0
 
-// --- pwm 핀 (PORTB)
+// --- PWM 핀 (PORTB)
 #define PWM_OUTPUT_DDR      DDRB
 #define PWM_OUTPUT_PIN      DDB1  // 팬 PWM 출력 핀 (OC1A)
 
@@ -74,6 +74,16 @@
 // =================================================================
 #define LCD_I2C_ADDRESS (0x27 << 1) // I2C LCD 모듈 주소
 #define I2C_SCL_FREQUENCY 100000UL  // I2C 통신 속도 (100kHz)
+
+
+// =================================================================
+// --- LCD 설정 ---
+// =================================================================
+// PCF8574 I/O 확장 칩의 핀맵
+#define LCD_RS (1 << 0)
+#define LCD_RW (1 << 1)
+#define LCD_E  (1 << 2)
+#define LCD_BL (1 << 3) // 백라이트
 
 
 // =================================================================

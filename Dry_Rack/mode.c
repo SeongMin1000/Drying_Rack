@@ -1,17 +1,8 @@
-﻿/*
- * mode.c
- *
- * Created: 2025-09-14 오후 8:15:18
- *  Author: KimHyeeun
- */ 
-
+﻿#include "config.h"
 #include "external_interrupt.h"
 #include "pwm.h"
 #include "adc.h"
 #include "gpio.h"
-
-#define MOIST_DRY_THRESHOLD		950  //빨래가 다 말랐다고 판단하는 ADC값
-#define TEMP_OVERHEAT_ADC		800  //fan의 온도가 너무 높다고 판단하는 ADC값
 
 extern volatile uint8_t start_flag;
 extern volatile uint8_t fan_mode;
@@ -79,6 +70,10 @@ void all_complete(uint16_t* moist_values){
 			set_led(i, GPIO_LOW);
 		}
 	}	
+	
+	//--------비프음 추가---------//
+	play_completion_beep();
+	
 }
 
 //빨래 젖을 수록 ADC 값 낮음
@@ -117,19 +112,19 @@ void control_fan_mode(uint16_t* moist_adc_values, uint16_t temp_adc)
 		break;
 		
 		case 1: // 강
-		pwm_set_speed(4000); // 80% duty
+		pwm_set_speed(FAN_SPEED_STRONG); // 80% duty
 		break;
 
 		case 2: // 중
-		pwm_set_speed(3000); // 60% duty	
+		pwm_set_speed(FAN_SPEED_MODERATE); // 60% duty	
 		break;
 
 		case 3: // 약
-		pwm_set_speed(2000); // 40% duty
+		pwm_set_speed(FAN_SPEED_LIGHT); // 40% duty
 		break;
 
 		case 4: // 저소음
-		pwm_set_speed(1000); // 20% duty
+		pwm_set_speed(FAN_SPEED_LOW_NOISE); // 20% duty
 		break;
 
 		default:
@@ -153,7 +148,7 @@ void reserved_mode(uint16_t* moist_adc_values, uint16_t temp_adc)
 	}
 	
 	
-	if(all_off == 0 && current_time - fan_start_time >= reserve_hours * 3600000UL){ //사용자가 누른 시간(reserve_hours)만큼의 시간이 흐르면 all_off이 된다
+	if(all_off == 0 && current_time - fan_start_time >= reserve_hours * ONE_HOUR_MS){ //사용자가 누른 시간(reserve_hours)만큼의 시간이 흐르면 all_off이 된다
 		all_off = 1;
 		return;
 	}
@@ -197,13 +192,13 @@ void auto_mode(uint16_t* moist_adc_values, uint16_t temp_adc)
 	if(all_off == 0){ 
 		//25분 동안 팬 작동
 		//5분 휴식
-		if(current_time - fan_start_time >= 1500000UL){ //25분 작동 했다면 팬 멈춘다
+		if(current_time - fan_start_time >= AUTO_MODE_FAN_ON_DURATION_MS){ //25분 작동 했다면 팬 멈춘다
 			pwm_set_speed(0);
 			fan_off = 1;
 			fan_start_time = millis();
 			
 		}
-		else if(fan_off == 1 && current_time - fan_start_time >= 300000UL) { //5분 동안 휴식했으면 다시 팬 작동
+		else if(fan_off == 1 && current_time - fan_start_time >= AUTO_MODE_FAN_OFF_INTERVAL_MS) { //5분 동안 휴식했으면 다시 팬 작동
 			fan_off = 0;
 			fan_start_time = millis();
 			pwm_set_duty_from_adc(moist_adc);

@@ -2,12 +2,6 @@
 #include "lcd.h"
 #include "i2c.h"
 
-// PCF8574 I/O 확장 칩의 핀맵
-#define LCD_RS (1 << 0)
-#define LCD_RW (1 << 1)
-#define LCD_E  (1 << 2)
-#define LCD_BL (1 << 3) // 백라이트
-
 static uint8_t backlight_state = LCD_BL; // 백라이트 상태 저장
 
 void lcd_pulse_enable(uint8_t data)
