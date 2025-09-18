@@ -5,7 +5,7 @@
 // 버튼 디바운싱을 위한 최소 시간 간격
 #define DEBOUNCE_DELAY 200
 
-volatile uint8_t fan_mode = 0;       // 0=자동, 1=상,2=중,3=하,4=저소음
+volatile uint8_t fan_mode = 0;       // 1=상,2=중,3=하,4=저소음
 volatile uint8_t reserve_hours = 0;  // 예약 시간 (0=없음, 1~8시간)
 volatile uint8_t start_flag = 0;
 
@@ -23,7 +23,7 @@ ISR(INT0_vect) {
 		last_reserve_press_time = current_time; // 현재 시간을 마지막 눌린 시간으로 기록
 
 		reserve_hours++;
-		if (reserve_hours > 8) reserve_hours = 1;
+		if (reserve_hours > 8) reserve_hours = 0;
 	}
 }
 
@@ -35,9 +35,9 @@ ISR(PCINT2_vect) {
 		unsigned long current_time = millis();
 		// 마지막으로 버튼이 눌린 시간으로부터 DEBOUNCE_DELAY 이상 지났을 때만 처리
 		if (current_time - last_fan_mode_press_time > DEBOUNCE_DELAY) {
-			last_fan_mode_press_time = current_time// 현재 시간을 마지막 눌린 시간으로 기록
+			last_fan_mode_press_time = current_time;// 현재 시간을 마지막 눌린 시간으로 기록
 				fan_mode++;
-			if (fan_mode > 4) fan_mode = 1;
+			if (fan_mode > 4) fan_mode = 0;
 			}
 		}
 
