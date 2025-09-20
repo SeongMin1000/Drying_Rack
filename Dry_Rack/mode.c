@@ -21,6 +21,7 @@ static unsigned long fan_start_time = 0; //팬 돌기 시작한 시간
 static unsigned long fan_off_time = 0; //팬 휴식기 들어간 시간
 static uint8_t fan_off = 0; //1이면 fan이 꺼져있는 상태이다
 static uint8_t all_off = 0;
+static uint8_t last_mode = 255;
 
 //ADC1 : PC0, ADC2 : PC3
 
@@ -118,6 +119,7 @@ void control_fan_mode(uint16_t* moist_adc_values, uint16_t temp_adc)
 		
 		case 1: // 강
 		pwm_set_speed(4000); // 80% duty
+		
 		break;
 
 		case 2: // 중

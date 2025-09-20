@@ -12,6 +12,7 @@
 #include "gpio.h" 
 #include "external_interrupt.h"
 #include "mode.h" 
+#include "lcdoutput.h"
 
 // --- 예약 모드 시간 설정 (밀리초 단위) ---
 const unsigned long FAN_ON_DURATION_MS      = 3UL * 60 * 1000;  // 팬 작동 시간: 3분
@@ -19,6 +20,7 @@ const unsigned long FAN_OFF_INTERVAL_MS     = 27UL * 60 * 1000; // 팬 휴식 �
 const unsigned long TOTAL_SCHEDULE_TIME_MS  = 1UL * 60 * 60 * 1000; // 기본 시간: 1시간
 
 extern volatile uint8_t start_flag;
+extern volatile uint8_t fan_mode;
 uint16_t moist_values[MOISTURE_CHANNELS]; //젖은 빨래들의 ADC 값을 불러올 배열
 
 
@@ -42,31 +44,35 @@ int main(void)
 	
 	uint8_t last_mode = 255;
 	uint8_t current_mode = 255;
+	uint8_t current_fan_mode = 255;
+	uint8_t last_fan_mode = 255;
 	uint16_t temp_value = 0;
 
 	
     while (1) 
     {
 		//제일 처음 시작할 때만 모드 설정 가능
-		if (start_flag) current_mode = set_mode(); // 현재 모드 가져오기
-		
+		if (start_flag) {
+			current_mode = set_mode(); // 현재 모드 가져오기
+			current_fan_mode = fan_mode;
+		}
 		temp_value = ADC_read(6);
 		
 		//LCD 깜박거림 최소화를 위해 모드 변경시에만 clear하도록 수정
 		if (current_mode != last_mode) {
-			lcd_clear();
-			lcd_goto_xy(0,0);
-			if (current_mode == 0) {
-				if(fan_mode == 1) lcd_puts("Fan Control\nPower : Strong");
-				else if(fan_mode == 2) lcd_puts("Fan Control\nPower : Moderate");
-				else if(fan_mode == 3) lcd_puts("Fan Control\nPower : Light");
-				else lcd_puts("Fan Control\nPower : Low Noise");
-			}
-			else if (current_mode == 1) lcd_puts("Reserve Mode");
-			else if (current_mode == 2) lcd_puts("Auto Mode");
-			else lcd_puts("System Idle");
+			lcd_print_mode(current_mode);
 			last_mode = current_mode;
 		}
+		
+		//바람 세기 조절 모드인 경우만 따로 빼서 lcd 출력
+		if(current_mode == 0){
+			if(current_fan_mode != last_fan_mode){
+				lcd_print_fan_mode(current_fan_mode);
+				last_fan_mode = current_fan_mode;
+			}
+								
+		}
+
 		
 		switch (current_mode)
 		{
