@@ -1,0 +1,37 @@
+# # # Microchip Studio / Atmel Studio # # #
+
+# Build output directories and files
+[Dd]ebug/
+[Rr]elease/
+*.o
+*.hex
+*.elf
+*.eep
+*.map
+*.lss
+*.srec
+
+# Generated files during build
+*.d
+*.componentinfo.xml
+
+# User-specific files (do not share)
+*.user
+*.suo
+
+# Local project files that can be generated
+*.cproj
+*.cppproj
+*.asmproj
+*.atsln.local
+
+# Dependency files created by Atmel Studio
+*dependencies.xml
+*solution-dependencies.xml
+
+# Miscellaneous
+.vs/
+atmel_studio_project.log
+
+# AVR-GCC Toolchain files
+*.bak
