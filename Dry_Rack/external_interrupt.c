@@ -1,6 +1,11 @@
 ﻿#include "config.h"
 #include "external_interrupt.h"
 #include "timer.h"
+#include "usart.h" // For debugging
+#include <stdio.h> // For sprintf
+
+// 디버깅 메시지 버퍼
+static char debug_buf[64];
 
 // 버튼 디바운싱을 위한 최소 시간 간격
 #define DEBOUNCE_DELAY 200
@@ -24,6 +29,9 @@ ISR(INT0_vect) {
 
 		reserve_hours++;
 		if (reserve_hours > 8) reserve_hours = 0;
+
+		sprintf(debug_buf, "[BUTTON] Reserve button pressed. Hours: %d\r\n", reserve_hours);
+		USART_transmit_string(debug_buf);
 	}
 }
 
@@ -36,13 +44,16 @@ ISR(PCINT2_vect) {
 		// 마지막으로 버튼이 눌린 시간으로부터 DEBOUNCE_DELAY 이상 지났을 때만 처리
 		if (current_time - last_fan_mode_press_time > DEBOUNCE_DELAY) {
 			last_fan_mode_press_time = current_time;// 현재 시간을 마지막 눌린 시간으로 기록
-				fan_mode++;
+			fan_mode++;
 			if (fan_mode > 4) fan_mode = 0;
-			}
-		}
 
+			sprintf(debug_buf, "[BUTTON] Fan Mode button pressed. Mode: %d\r\n", fan_mode);
+			USART_transmit_string(debug_buf);
+		}
 	}
+
 }
+
 
 // ================= 시작 버튼 ISR (PD3 / INT1) =================
 ISR(INT1_vect) {
@@ -52,14 +63,16 @@ ISR(INT1_vect) {
 		last_start_press_time = current_time; // 현재 시간을 마지막 눌린 시간으로 기록
 
 		start_flag = 1;
+
+		USART_transmit_string("[BUTTON] Start button pressed.\r\n");
 	}
 }
 
 // ================= 버튼 및 인터럽트 초기화 =================
 void button_init(void) {
 	// PD2(INT0), PD3(INT1), PD7(INT7) 입력 + 풀업
-	DDRD &= ~((1 << RESERVE_BUTTON_PIN) | (1 << START_BUTTON_PIN) | (1 << FAN_MODE_BUTTON_PIN));
-	PORTD |= (1 << RESERVE_BUTTON_PIN) | (1 << START_BUTTON_PIN) | (1 << FAN_MODE_BUTTON_PIN);
+	DDRD &= ~((1 <<RESERVE_BUTTON_PIN) | (1 << START_BUTTON_PIN) | (1 << FAN_MODE_BUTTON_PIN));
+	PORTD |= (1 <<RESERVE_BUTTON_PIN) | (1 << START_BUTTON_PIN) | (1 << FAN_MODE_BUTTON_PIN);
 
 	// 외부 인터럽트 활성화
 	EIMSK |= (1 << INT0) | (1 << INT1);
@@ -73,4 +86,3 @@ void button_init(void) {
 
 	//sei(); // 전역 인터럽트 허용
 }
-

@@ -11,5 +11,6 @@ void button_init(void);
 extern volatile uint8_t fan_mode;
 extern volatile uint8_t reserve_hours;
 extern volatile uint8_t start_flag;
+extern volatile uint8_t g_reserve_hours_changed_flag; // 예약 시간 변경 알림 플래그
 
 #endif /* EXTERNAL_INTERRUPT_H_ */

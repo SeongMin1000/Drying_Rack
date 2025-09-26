@@ -15,13 +15,13 @@
 // --- LED 핀 (PORTC) ---
 #define LED_DDR     DDRC
 #define LED_PORT    PORTC
-#define LED0_PIN    DDC1 // 첫 번째 빨래 건조 완료 LED
-#define LED1_PIN    DDC2 // 두 번째 빨래 건조 완료 LED
+#define LED0_PIN    PC1 // 첫 번째 빨래 건조 완료 LED
+#define LED1_PIN    PC2 // 두 번째 빨래 건조 완료 LED
 
 // --- 부저 핀 (PORTB) ---
 #define BUZZER_DDR  DDRB
 #define BUZZER_PORT PORTB
-#define BUZZER_PIN  DDB0
+#define BUZZER_PIN  PB0
 
 // --- PWM 핀 (PORTB)
 #define PWM_OUTPUT_DDR      DDRB
@@ -89,7 +89,7 @@
 // =================================================================
 // --- USART (시리얼 통신) 설정 ---
 // =================================================================
-#define USART_BAUD_RATE 115200 // 시리얼 통신 속도
+#define USART_BAUD_RATE 9600 // 시리얼 통신 속도
 
 
 #endif /* CONFIG_H_ */

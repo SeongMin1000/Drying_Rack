@@ -1,11 +1,16 @@
 ﻿#include "config.h"
 #include "pwm.h"
+#include "usart.h" // For debugging
+#include <stdio.h> // For sprintf
+
+// 디버깅 메시지 버퍼
+static char debug_buf[64];
 
 
 void pwm_init()
 {
 	// 1. 출력 핀 설정
-	 PWM_OUTPUT_DDR |= (1 << PWM_OUTPUT_PIN);// PB1 (OC1A) 핀을 출력으로
+	PWM_OUTPUT_DDR |= (1 << PWM_OUTPUT_PIN);// PB1 (OC1A) 핀을 출력으로
 
 	// 2. 타이머 제어 레지스터 설정 (TCCR1A, TCCR1B)
 	// non-inverting Fast PWM 모드(14), 64 프리스케일러
@@ -27,14 +32,23 @@ void pwm_set_speed(uint16_t speed) {
 		speed = PWM_TOP_VALUE; // 최대값을 넘지 않도록 제한
 	}
 	OCR1A = speed;
+
+	// 디버깅 메시지 추가
+	sprintf(debug_buf, "[PWM] Set speed (OCR1A) = %u\r\n", speed);
+	USART_transmit_string(debug_buf);
 }
 
 void pwm_set_duty_from_adc(uint16_t adc_value)
 {
-        const unsigned long ADC_MAX = 1023UL;
-        const unsigned long DUTY_MAX = PWM_TOP_VALUE;
+	const unsigned long ADC_MAX = 1023UL;
+	const unsigned long DUTY_MAX = PWM_TOP_VALUE;
 
-        // ADC 반전 후 스케일
-        unsigned long duty = ((ADC_MAX - (unsigned long)adc_value) * DUTY_MAX) / ADC_MAX;
-        pwm_set_speed((uint16_t)duty);
+	// ADC 반전 후 스케일
+	unsigned long duty = ((ADC_MAX - (unsigned long)adc_value) * DUTY_MAX) / ADC_MAX;
+
+	// 디버깅 메시지 추가
+	sprintf(debug_buf, "[PWM] ADC value %u -> Duty cycle %lu\r\n", adc_value, duty);
+	USART_transmit_string(debug_buf);
+	
+	pwm_set_speed((uint16_t)duty);
 }
