@@ -29,9 +29,11 @@ ISR(INT0_vect) {
 
 		reserve_hours++;
 		if (reserve_hours > 8) reserve_hours = 0;
-
+		
+		// ================= 디버깅용 =================
 		sprintf(debug_buf, "[BUTTON] Reserve button pressed. Hours: %d\r\n", reserve_hours);
 		USART_transmit_string(debug_buf);
+		// ===========================================
 	}
 }
 
@@ -46,9 +48,11 @@ ISR(PCINT2_vect) {
 			last_fan_mode_press_time = current_time;// 현재 시간을 마지막 눌린 시간으로 기록
 			fan_mode++;
 			if (fan_mode > 4) fan_mode = 0;
-
+			
+			// ================= 디버깅용 =================
 			sprintf(debug_buf, "[BUTTON] Fan Mode button pressed. Mode: %d\r\n", fan_mode);
 			USART_transmit_string(debug_buf);
+			// ===========================================
 		}
 	}
 
@@ -63,8 +67,10 @@ ISR(INT1_vect) {
 		last_start_press_time = current_time; // 현재 시간을 마지막 눌린 시간으로 기록
 
 		start_flag = 1;
-
+		
+		// ================= 디버깅용 =================
 		USART_transmit_string("[BUTTON] Start button pressed.\r\n");
+		// ===========================================
 	}
 }
 

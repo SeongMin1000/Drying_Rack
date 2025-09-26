@@ -46,6 +46,6 @@ void buzzer_off(void)
 void play_completion_beep(void)
 {
 	buzzer_on();
-	_delay_ms(1000); // 1초간 울림
+	_delay_ms(3000); // 3초간 울림
 	buzzer_off();
 }
