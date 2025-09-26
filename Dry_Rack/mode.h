@@ -6,9 +6,7 @@
 // 시스템 상태 정의
 typedef enum {
     STATE_IDLE,            // 대기 상태
-    STATE_FAN_CONTROL,     // 수동 팬 제어
-    STATE_RESERVE,         // 예약
-    STATE_AUTO_DRY,        // 자동 건조
+    STATE_DRYING,          // 건조 중
     STATE_COMPLETED,       // 건조 완료
     STATE_ERROR_OVERHEAT   // 과열 오류
 } SystemState;

@@ -25,6 +25,7 @@ void pwm_init()
 	OCR1A = 0;
 }
 
+// 팬 모드 설정 시 호출
 void pwm_set_speed(uint16_t speed) {
 	// OCR1A 레지스터에 값을 설정하여 듀티 사이클을 변경
 	// speed 값의 범위는 0 ~ 4999
@@ -38,6 +39,7 @@ void pwm_set_speed(uint16_t speed) {
 	USART_transmit_string(debug_buf);
 }
 
+// 자동 모드일 때 호출
 void pwm_set_duty_from_adc(uint16_t adc_value)
 {
 	const unsigned long ADC_MAX = 1023UL;

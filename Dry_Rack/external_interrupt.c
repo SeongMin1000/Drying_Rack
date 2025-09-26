@@ -1,20 +1,15 @@
 ﻿#include "config.h"
 #include "external_interrupt.h"
 #include "timer.h"
-#include "usart.h" // For debugging
-#include <stdio.h> // For sprintf
-
-// 디버깅 메시지 버퍼
-static char debug_buf[64];
 
 // 버튼 디바운싱을 위한 최소 시간 간격
 #define DEBOUNCE_DELAY 200
 
-volatile uint8_t fan_mode = 0;       // 1=강,2=중,3=약,4=저소음
-volatile uint8_t reserve_hours = 0;  // 예약 시간 (0=없음, 1~8시간)
-volatile uint8_t start_flag = 0;
+volatile uint8_t g_reserve_button_flag = 0;
+volatile uint8_t g_fan_mode_button_flag = 0;
+volatile uint8_t g_start_button_flag = 0;
 
-// 각 인터럽트의 마지막 입력 시간을 저장하는 변수
+// 각 인터럽트의 마지막 입력 시간을 저장하는 변수 (디바운싱용)
 static volatile unsigned long last_reserve_press_time = 0;
 static volatile unsigned long last_fan_mode_press_time = 0;
 static volatile unsigned long last_start_press_time = 0;
@@ -26,14 +21,7 @@ ISR(INT0_vect) {
 	// 마지막으로 버튼이 눌린 시간으로부터 DEBOUNCE_DELAY 이상 지났을 때만 처리
 	if (current_time - last_reserve_press_time > DEBOUNCE_DELAY) {
 		last_reserve_press_time = current_time; // 현재 시간을 마지막 눌린 시간으로 기록
-
-		reserve_hours++;
-		if (reserve_hours > 8) reserve_hours = 0;
-		
-		// ================= 디버깅용 =================
-		sprintf(debug_buf, "[BUTTON] Reserve button pressed. Hours: %d\r\n", reserve_hours);
-		USART_transmit_string(debug_buf);
-		// ===========================================
+		g_reserve_button_flag = 1;
 	}
 }
 
@@ -45,14 +33,8 @@ ISR(PCINT2_vect) {
 		unsigned long current_time = millis();
 		// 마지막으로 버튼이 눌린 시간으로부터 DEBOUNCE_DELAY 이상 지났을 때만 처리
 		if (current_time - last_fan_mode_press_time > DEBOUNCE_DELAY) {
-			last_fan_mode_press_time = current_time;// 현재 시간을 마지막 눌린 시간으로 기록
-			fan_mode++;
-			if (fan_mode > 4) fan_mode = 0;
-			
-			// ================= 디버깅용 =================
-			sprintf(debug_buf, "[BUTTON] Fan Mode button pressed. Mode: %d\r\n", fan_mode);
-			USART_transmit_string(debug_buf);
-			// ===========================================
+			last_fan_mode_press_time = current_time; // 현재 시간을 마지막 눌린 시간으로 기록
+			g_fan_mode_button_flag = 1;
 		}
 	}
 
@@ -65,12 +47,7 @@ ISR(INT1_vect) {
 	// 마지막으로 버튼이 눌린 시간으로부터 DEBOUNCE_DELAY 이상 지났을 때만 처리
 	if (current_time - last_start_press_time > DEBOUNCE_DELAY) {
 		last_start_press_time = current_time; // 현재 시간을 마지막 눌린 시간으로 기록
-
-		start_flag = 1;
-		
-		// ================= 디버깅용 =================
-		USART_transmit_string("[BUTTON] Start button pressed.\r\n");
-		// ===========================================
+		g_start_button_flag = 1;
 	}
 }
 

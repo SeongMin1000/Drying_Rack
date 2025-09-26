@@ -7,9 +7,8 @@
 #include "gpio.h"
 #include "external_interrupt.h"
 #include "mode.h"
-#include <stdio.h> // for sprintf
 
-// 시스템 상태를 컨텍스트
+// 시스템 상태 컨텍스트
 DryerContext context;
 
 int main(void) {

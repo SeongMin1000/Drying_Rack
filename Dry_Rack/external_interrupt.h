@@ -4,13 +4,6 @@
 #ifndef EXTERNAL_INTERRUPT_H_
 #define EXTERNAL_INTERRUPT_H_
 
-// 버튼 초기화 함수
 void button_init(void);
-
-// 전역 변수 extern 선언 (다른 파일에서도 접근 가능)
-extern volatile uint8_t fan_mode;
-extern volatile uint8_t reserve_hours;
-extern volatile uint8_t start_flag;
-extern volatile uint8_t g_reserve_hours_changed_flag; // 예약 시간 변경 알림 플래그
 
 #endif /* EXTERNAL_INTERRUPT_H_ */
