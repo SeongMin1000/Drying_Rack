@@ -47,6 +47,7 @@ static void handle_drying(DryerContext* ctx);
 static void handle_completed(DryerContext* ctx);
 static void handle_error_overheat(DryerContext* ctx);
 
+static const char* get_state_name(SystemState state);
 static void change_state(DryerContext* ctx, SystemState new_state);
 static void update_sensors(DryerContext* ctx);
 static void update_drying_status(DryerContext* ctx);
@@ -75,6 +76,7 @@ void context_init(DryerContext* ctx) {
 	
 	set_fan_from_speed_level(FAN_OFF);
 	// 팬 회전 테스트 용
+	// main에서 state_machine_run(&context); 부분 주석 처리하고 실행
 	//set_fan_from_speed_level(FAN_STRONG);
 
 	// display_status(ctx);
@@ -226,7 +228,13 @@ static void handle_completed(DryerContext* ctx) {
 		set_led(i, GPIO_LOW);
 	}
 
-	context_init(ctx); // 새 시작을 위해 재초기화
+	// 새 시작을 위해 재초기화
+	ctx->reserve_hours_setting = 0;
+    ctx->fan_speed_setting = FAN_OFF;
+    ctx->all_dry = 0;
+    for (int i = 0; i < MOISTURE_CHANNELS; i++) {
+        ctx->dry_flags[i] = 0;
+    }
 	change_state(ctx, STATE_IDLE);
 	
 	// display_status(ctx);

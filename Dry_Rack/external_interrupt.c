@@ -53,7 +53,7 @@ ISR(INT1_vect) {
 
 // ================= 버튼 및 인터럽트 초기화 =================
 void button_init(void) {
-	// PD2(INT0), PD3(INT1), PD7(INT7) 입력 + 풀업
+	// PD2(INT0), PD3(INT1), PD7(PCINT23) 입력 + 풀업
 	DDRD &= ~((1 <<RESERVE_BUTTON_PIN) | (1 << START_BUTTON_PIN) | (1 << FAN_MODE_BUTTON_PIN));
 	PORTD |= (1 <<RESERVE_BUTTON_PIN) | (1 << START_BUTTON_PIN) | (1 << FAN_MODE_BUTTON_PIN);
 
