@@ -32,6 +32,8 @@ void pwm_set_speed(uint16_t speed) {
 	if (speed > PWM_TOP_VALUE) {
 		speed = PWM_TOP_VALUE; // 최대값을 넘지 않도록 제한
 	}
+	//else if(speed < 1000)
+		//speed = 1000;
 	OCR1A = speed;
 
 	// 디버깅 메시지 추가
@@ -46,7 +48,8 @@ void pwm_set_duty_from_adc(uint16_t adc_value)
 	const unsigned long DUTY_MAX = PWM_TOP_VALUE;
 
 	// ADC 반전 후 스케일
-	unsigned long duty = ((ADC_MAX - (unsigned long)adc_value) * DUTY_MAX) / ADC_MAX;
+	unsigned long duty = (((unsigned long)adc_value) * DUTY_MAX) / ADC_MAX;
+	
 
 	// 디버깅 메시지 추가
 	sprintf(debug_buf, "[PWM] ADC value %u -> Duty cycle %lu\r\n", adc_value, duty);

@@ -74,7 +74,7 @@ void context_init(DryerContext* ctx) {
     g_fan_mode_button_flag = 0;
     g_start_button_flag = 0;
 	
-	set_fan_from_speed_level(FAN_OFF);
+	//set_fan_from_speed_level(FAN_OFF);
 	// 팬 회전 테스트 용
 	// main에서 state_machine_run(&context); 부분 주석 처리하고 실행
 	//set_fan_from_speed_level(FAN_STRONG);
@@ -164,7 +164,6 @@ static void handle_idle(DryerContext* ctx) {
 
 // 건조기 동작 상태
 static void handle_drying(DryerContext* ctx) {
-	update_drying_status(ctx);
 
     // --- 종료 조건 확인 ---
 
@@ -181,9 +180,12 @@ static void handle_drying(DryerContext* ctx) {
 			change_state(ctx, STATE_COMPLETED);
             return; // 상태가 변경되었으므로 즉시 함수 종료
         }
+		
+		
     }
     // 2. 시간 설정이 없는 경우: 센서 감지가 종료 조건
     else {
+		update_drying_status(ctx);
         // 모든 빨래가 건조되었는지 확인 (이 값은 update_drying_status 함수에서 갱신됨)
         if (ctx->all_dry) {
 			// ================= 디버깅용 =================
@@ -201,6 +203,7 @@ static void handle_drying(DryerContext* ctx) {
     if (ctx->fan_speed_setting != FAN_OFF) {
         // 사용자가 설정한 고정 속도로 팬 구동
         set_fan_from_speed_level(ctx->fan_speed_setting);
+		//set_fan_from_speed_level(FAN_STRONG);
     }
     // 2. 수동 설정이 없는 경우 (자동 모드)
     else {
@@ -209,9 +212,9 @@ static void handle_drying(DryerContext* ctx) {
 		 // 여러 센서 값의 평균을 계산
         uint16_t avg_moist_value = 0;
         for (int i = 0; i < MOISTURE_CHANNELS; i++) {
-            avg_moist_value += ctx->moist_values[i];
+			if(avg_moist_value < ctx->moist_values[i])
+				avg_moist_value = ctx->moist_values[i];
         }
-        avg_moist_value /= MOISTURE_CHANNELS;
 
 		pwm_set_duty_from_adc(avg_moist_value);
     }
@@ -285,9 +288,9 @@ static void update_sensors(DryerContext* ctx) {
 	ctx->temp_value = ADC_read(6); // 온도 센서 채널 6
 
 	// ================= 디버깅용 =================
-	sprintf(debug_buf, "[SENSOR] Moist1: %4u, Moist2: %4u, Temp: %4u\r\n",
-	ctx->moist_values[0], ctx->moist_values[1], ctx->temp_value);
-	USART_transmit_string(debug_buf);
+	// sprintf(debug_buf, "[SENSOR] Moist1: %4u, Moist2: %4u, Temp: %4u\r\n",
+	// ctx->moist_values[0], ctx->moist_values[1], ctx->temp_value);
+	// USART_transmit_string(debug_buf);
 	// ===========================================
 }
 
@@ -295,7 +298,7 @@ static void update_sensors(DryerContext* ctx) {
 static void update_drying_status(DryerContext* ctx) {
 	int dry_count = 0;
 	for (int i = 0; i < MOISTURE_CHANNELS; i++) {
-		if (ctx->moist_values[i] > MOIST_DRY_THRESHOLD) {
+		if (ctx->moist_values[i] < MOIST_DRY_THRESHOLD) {
 			if (ctx->dry_flags[i] == 0) {
 				ctx->dry_flags[i] = 1;
 				set_led(i, GPIO_HIGH); // 새로 마른 빨래 LED 켜기

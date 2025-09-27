@@ -30,6 +30,7 @@ int main(void) {
 	while (1) {
 		// 상태 머신 실행
 		state_machine_run(&context);
+
 		_delay_ms(100);
 	}
 }
