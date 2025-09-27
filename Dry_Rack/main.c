@@ -3,6 +3,7 @@
 #include "pwm.h"
 #include "usart.h"
 #include "timer.h"
+#include "i2c.h"
 #include "lcd.h"
 #include "gpio.h"
 #include "external_interrupt.h"
@@ -17,7 +18,8 @@ int main(void) {
 	pwm_init();
 	USART_init();
 	timer_init();
-	//lcd_init();
+	i2c_init();
+	lcd_init();
 	gpio_init();
 	button_init();
 

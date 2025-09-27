@@ -52,7 +52,7 @@ static void change_state(DryerContext* ctx, SystemState new_state);
 static void update_sensors(DryerContext* ctx);
 static void update_drying_status(DryerContext* ctx);
 static void set_fan_from_speed_level(FanSpeed speed);
-//static void display_status(DryerContext* ctx);
+static void display_status(DryerContext* ctx);
 
 // =================================================================
 // --- 공개 함수 ---
@@ -73,13 +73,6 @@ void context_init(DryerContext* ctx) {
 	g_reserve_button_flag = 0;
     g_fan_mode_button_flag = 0;
     g_start_button_flag = 0;
-	
-	//set_fan_from_speed_level(FAN_OFF);
-	// 팬 회전 테스트 용
-	// main에서 state_machine_run(&context); 부분 주석 처리하고 실행
-	//set_fan_from_speed_level(FAN_STRONG);
-
-	// display_status(ctx);
 
 	// ================= 디버깅용 =================
 	USART_transmit_string("--- System Initializing ---\r\n");
@@ -109,7 +102,6 @@ void state_machine_run(DryerContext* ctx) {
 		case STATE_COMPLETED:       handle_completed(ctx);      break;
 		case STATE_ERROR_OVERHEAT:  handle_error_overheat(ctx); break;
 	}
-	// display_status(ctx);
 }
 
 
@@ -159,7 +151,7 @@ static void handle_idle(DryerContext* ctx) {
         change_state(ctx, STATE_DRYING);
     }
 	
-	//display_status(ctx);
+	display_status(ctx);
 }
 
 // 건조기 동작 상태
@@ -170,7 +162,7 @@ static void handle_drying(DryerContext* ctx) {
     // 1. 시간 설정(타이머)이 있는 경우: 시간 경과가 최우선 종료 조건
     if (ctx->reserve_hours_setting > 0) {
         unsigned long elapsed_time = millis() - ctx->state_entry_time;
-        unsigned long duration_ms = (unsigned long)ctx->reserve_hours_setting * ONE_HOUR_MS; // 시간 -> ms
+        unsigned long duration_ms = (unsigned long)ctx->reserve_hours_setting * ONE_HOUR_MS; // 테스트 시 ONE_HOUR_MS 지우고 1000(MS)
 
         if (elapsed_time >= duration_ms) {
 			// ================= 디버깅용 =================
@@ -240,14 +232,14 @@ static void handle_completed(DryerContext* ctx) {
     }
 	change_state(ctx, STATE_IDLE);
 	
-	// display_status(ctx);
+	display_status(ctx);
 }
 
 // 팬 과열 상태
 static void handle_error_overheat(DryerContext* ctx) {
 	set_fan_from_speed_level(FAN_OFF);
 
-	//display_status(ctx);
+	display_status(ctx);
 }
 
 
@@ -279,7 +271,7 @@ static void change_state(DryerContext* ctx, SystemState new_state) {
 	ctx->state = new_state;
 	ctx->state_entry_time = millis();
 	
-	//lcd_clear();
+	lcd_clear();
 }
 
 // 센서값 업데이트 함수
@@ -336,61 +328,34 @@ static void set_fan_from_speed_level(FanSpeed speed) {
 	pwm_set_speed(pwm_value);
 }
 
-// lcd 표시 함수
-// static void display_status(DryerContext* ctx) {
-// 	lcd_goto_xy(0, 0);
-// 	switch (ctx->state) {
-// 		case STATE_IDLE:
-// 		lcd_puts("모드 선택...");
-// 		// 2번째 줄에 설정 표시 가능
-// 		break;
-// 		case STATE_FAN_CONTROL:
-// 		lcd_puts("수동 팬 제어");
-// 		lcd_goto_xy(0, 1);
-// 		switch(ctx->fan_speed_setting) {
-// 			case FAN_STRONG:    lcd_puts("세기: 강");       break;
-// 			case FAN_MODERATE:  lcd_puts("세기: 중간");     break;
-// 			case FAN_LIGHT:     lcd_puts("세기: 약");       break;
-// 			case FAN_LOW_NOISE: lcd_puts("세기: 저소음");   break;
-// 			default:            lcd_puts("세기: 꺼짐");     break;
-// 		}
-// 		break;
-// 		case STATE_RESERVE:
-// 		lcd_puts("예약 건조");
-		
-// 		// 남은 시간 계산
-// 		unsigned long remaining_ms = 0;
-// 		unsigned long elapsed_time = millis() - ctx->state_entry_time;
-// 		unsigned long total_duration_ms = (unsigned long)ctx->reserve_hours_setting * ONE_HOUR_MS;
+static void display_status(DryerContext* ctx) {
+    // 1. 화면을 깨끗하게 지우고 시작
+    lcd_clear();
 
-// 		if (elapsed_time < total_duration_ms) {
-// 			remaining_ms = total_duration_ms - elapsed_time;
-// 		}
+    // 2. 첫 번째 줄의 시작으로 커서 이동
+    lcd_cmd(0x80);
 
-// 		unsigned int remaining_hours = remaining_ms / ONE_HOUR_MS;
-// 		unsigned int remaining_mins = (remaining_ms % ONE_HOUR_MS) / 60000;
+    // 3. 현재 상태(state)에 따라 다른 메시지 출력
+    switch (ctx->state) {
+        case STATE_IDLE:
+            lcd_msg("모드 선택...");
+            // 2번째 줄에 다른 설정 표시 가능
+            break;
 
-// 		char buf[16];
-// 		sprintf(buf, "남은시간 %02u:%02u", remaining_hours, remaining_mins);
-// 		lcd_goto_xy(0, 1);
-// 		lcd_puts(buf);
-// 		break;
-// 		case STATE_AUTO_DRY:
-// 		lcd_puts("자동 모드");
-// 		// 센서값 표시 가능
-// 		break;
-// 		case STATE_COMPLETED:
-// 		lcd_puts("건조 완료!");
-// 		lcd_goto_xy(0, 1);
-// 		lcd_puts("START 버튼");
-// 		break;
-// 		case STATE_ERROR_OVERHEAT:
-// 		lcd_puts("! 과열 발생 !");
-// 		lcd_goto_xy(0, 1);
-// 		lcd_puts("시스템 정지");
-// 		break;
-// 		default:
-// 		lcd_puts("알 수 없는 상태");
-// 		break;
-// 	}
-// }
+        case STATE_COMPLETED:
+            lcd_msg("건조 완료!");
+            lcd_cmd(0xC0); // 두 번째 줄로 이동
+            lcd_msg("START 버튼");
+            break;
+
+        case STATE_ERROR_OVERHEAT:
+            lcd_msg("! 과열 발생 !");
+            lcd_cmd(0xC0); // 두 번째 줄로 이동
+            lcd_msg("시스템 정지");
+            break;
+
+        default:
+            lcd_msg("알 수 없는 상태");
+            break;
+    }
+}

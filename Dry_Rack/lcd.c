@@ -1,99 +1,97 @@
 #include "config.h"
 #include "lcd.h"
 #include "i2c.h"
+#include <avr/io.h>
+#include <util/delay.h>
 
-static uint8_t backlight_state = LCD_BL; // 백라이트 상태 저장
+#define	WRITE			0
+#define READ			1
 
-// 내부 함수: 4비트 데이터를 I2C 버스에 직접 전송 (Enable 펄스 포함)
-// 이 함수는 i2c_start()와 주소 전송이 완료된 후에 호출되어야 합니다.
-static void lcd_write_4bits(uint8_t data)
+unsigned char lcd = 0x00;
+
+void lcd_write(unsigned char x)
 {
-    // 데이터와 백라이트 상태를 합친 후 Enable 신호 ON
-    i2c_write(data | backlight_state | LCD_E);
-    _delay_us(1); // Enable 펄스 길이
-    
-    // Enable 신호 OFF
-    i2c_write(data | backlight_state);
-    _delay_us(50); // 명령 실행 대기 시간
+	i2c_start();							//--- Start Condition
+	i2c_write((LCD_I2C_ADDRESS << 1)| WRITE);	//--- SLA+W is Send 0x40
+	i2c_write(x);						//--- Data to Slave Device
+	i2c_stop();								//--- Stop Condition
 }
 
-// 1바이트 데이터를 4비트 모드로 전송
-void lcd_send_byte(uint8_t byte, uint8_t is_data)
+void lcd_4bit_send(unsigned char x)
 {
-    uint8_t rs_mask = is_data ? LCD_RS : 0;
-    uint8_t high_nibble = byte & 0xF0;
-    uint8_t low_nibble = (byte << 4) & 0xF0;
-
-    if (i2c_start() != I2C_SUCCESS) return;
-    if (i2c_write(LCD_I2C_ADDRESS) != I2C_SUCCESS) {
-        i2c_stop();
-        return;
-    }
-    
-    // 상위 4비트 전송
-    lcd_write_4bits(high_nibble | rs_mask);
-    
-    // 하위 4비트 전송
-    lcd_write_4bits(low_nibble | rs_mask);
-    
-    i2c_stop();
+	unsigned char temp = 0x00;					//--- temp variable for data operation
+	
+	lcd &= 0x0F;								//--- Masking last four bit to prevent the RS, RW, EN, Backlight
+	temp = (x & 0xF0);							//--- Masking higher 4-Bit of Data and send it LCD
+	lcd |= temp;								//--- 4-Bit Data and LCD control Pin
+	lcd |= (0x04);								//--- Latching Data to LCD EN = 1
+	lcd_write(lcd);							//--- Send Data From PCF8574 to LCD PORT
+	_delay_us(1);								//--- 1us Delay
+	lcd &= ~(0x04);								//--- Latching Complete
+	lcd_write(lcd);							//--- Send Data From PCF8574 to LCD PORT
+	_delay_us(5);								//--- 5us Delay to Complete Latching
+	
+	
+	temp = ((x & 0x0F)<<4);						//--- Masking Lower 4-Bit of Data and send it LCD
+	lcd &= 0x0F;								//--- Masking last four bit to prevent the RS, RW, EN, Backlight
+	lcd |= temp;								//--- 4-Bit Data and LCD control Pin
+	lcd |= (0x04);								//--- Latching Data to LCD EN = 1
+	lcd_write(lcd);							//--- Send Data From PCF8574 to LCD PORT
+	_delay_us(1);								//--- 1us Delay
+	lcd &= ~(0x04);								//--- Latching Complete
+	lcd_write(lcd);							//--- Send Data From PCF8574 to LCD PORT
+	_delay_us(5);								//--- 5us Delay to Complete Latching
+	
 }
 
-// LCD 초기화
-void lcd_init(void)
+/* Function to Write to LCD Command Register */
+
+void lcd_cmd(unsigned char x)
 {
-    i2c_init();
-    _delay_ms(50); // 전원 인가 후 대기
-
-    // 8비트 모드로 3번 시도 (초기화 시퀀스)
-    if (i2c_start() != I2C_SUCCESS) return;
-    if (i2c_write(LCD_I2C_ADDRESS) != I2C_SUCCESS) {
-        i2c_stop();
-        return;
-    }
-
-    lcd_write_4bits(0x30);
-    _delay_ms(5);
-    lcd_write_4bits(0x30);
-    _delay_us(100);
-    lcd_write_4bits(0x30);
-    _delay_us(100);
-
-    // 4비트 모드로 설정
-    lcd_write_4bits(0x20);
-    _delay_us(100);
-    
-    i2c_stop();
-
-    // 4비트 모드 설정 완료 후 데이터 전송
-    lcd_send_byte(0x28, 0); // Function Set: 4-bit, 2-line, 5x8 dots
-    lcd_send_byte(0x0C, 0); // Display ON/OFF Control: Display ON, Cursor OFF, Blink OFF
-    lcd_send_byte(0x06, 0); // Entry Mode Set: Increment cursor, no display shift
-    lcd_clear();            // Clear Display
+	lcd = 0x08;									//--- Enable Backlight Pin
+	lcd &= ~(0x01);								//--- Select Command Register By RS = 0
+	lcd_write(lcd);							//--- Send Data From PCF8574 to LCD PORT
+	lcd_4bit_send(x);						//--- Function to Write 4-bit data to LCD
+	
 }
 
-void lcd_clear(void)
+/* Function to Write to LCD Command Register */
+
+void lcd_dwr(unsigned char x)
 {
-    lcd_send_byte(0x01, 0); // Clear display command
-    _delay_ms(2);           // 이 명령어는 실행 시간이 길다
+	lcd |= 0x09;								//--- Enable Backlight Pin & Select Data Register By RS = 1
+	lcd_write(lcd);							//--- Send Data From PCF8574 to LCD PORT
+	lcd_4bit_send(x);						//--- Function to Write 4-bit data to LCD
 }
 
-void lcd_goto_xy(uint8_t x, uint8_t y)
+/* Function to Send String of Data */
+
+void lcd_msg(char *c)
 {
-    uint8_t address;
-    switch(y)
-    {
-        case 0: address = 0x80; break;
-        case 1: address = 0xC0; break;
-        default: return;
-    }
-    lcd_send_byte(address + x, 0);
+	while (*c != '\0')							//--- Check Pointer for Null
+	lcd_dwr(*c++);							//--- Send the String of Data
 }
 
-void lcd_puts(const char *str)
+/* Function to Execute Clear LCD Command */
+
+void lcd_clear()
 {
-    while(*str)
-    {
-        lcd_send_byte(*str++, 1);
-    }
+	lcd_cmd(0x01);
+}
+
+void lcd_init()
+{
+	lcd = 0x04;						//--- EN = 1 for 25us initialize Sequence
+	lcd_write(lcd);
+	_delay_us(25);
+	
+	lcd_cmd(0x03);				//--- Initialize Sequence
+	lcd_cmd(0x03);				//--- Initialize Sequence
+	lcd_cmd(0x03);				//--- Initialize Sequence
+	lcd_cmd(0x02);				//--- Return to Home
+	lcd_cmd(0x28);				//--- 4-Bit Mode 2 - Row Select
+	lcd_cmd(0x0F);				//--- Cursor on, Blinking on
+	lcd_cmd(0x01);				//--- Clear LCD
+	lcd_cmd(0x06);				//--- Auto increment Cursor
+	lcd_cmd(0x80);				//--- Row 1 Column 1 Address
 }
