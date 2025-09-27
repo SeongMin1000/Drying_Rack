@@ -45,7 +45,6 @@ static char debug_buf[64];
 static void handle_idle(DryerContext* ctx);
 static void handle_drying(DryerContext* ctx);
 static void handle_completed(DryerContext* ctx);
-static void handle_error_overheat(DryerContext* ctx);
 
 static const char* get_state_name(SystemState state);
 static void change_state(DryerContext* ctx, SystemState new_state);
@@ -85,22 +84,11 @@ void state_machine_run(DryerContext* ctx) {
 	// 센서 입력값 갱신
 	update_sensors(ctx);
 
-	// 과열 상태 확인
-	if (ctx->temp_value > TEMP_OVERHEAT_ADC && ctx->state != STATE_ERROR_OVERHEAT) {
-		change_state(ctx, STATE_ERROR_OVERHEAT);
-
-		// ================= 디버깅용 =================
-		sprintf(debug_buf, "Overheat detected! Temp ADC: %u\r\n", ctx->temp_value);
-		USART_transmit_string(debug_buf);
-		// ===========================================
-	}
-
 	// 현재 상태에 해당하는 핸들러 실행
 	switch (ctx->state) {
 		case STATE_IDLE:            handle_idle(ctx);           break;
 		case STATE_DRYING:          handle_drying(ctx);         break;
 		case STATE_COMPLETED:       handle_completed(ctx);      break;
-		case STATE_ERROR_OVERHEAT:  handle_error_overheat(ctx); break;
 	}
 }
 
@@ -195,7 +183,6 @@ static void handle_drying(DryerContext* ctx) {
     if (ctx->fan_speed_setting != FAN_OFF) {
         // 사용자가 설정한 고정 속도로 팬 구동
         set_fan_from_speed_level(ctx->fan_speed_setting);
-		//set_fan_from_speed_level(FAN_STRONG);
     }
     // 2. 수동 설정이 없는 경우 (자동 모드)
     else {
@@ -235,14 +222,6 @@ static void handle_completed(DryerContext* ctx) {
 	display_status(ctx);
 }
 
-// 팬 과열 상태
-static void handle_error_overheat(DryerContext* ctx) {
-	set_fan_from_speed_level(FAN_OFF);
-
-	display_status(ctx);
-}
-
-
 // =================================================================
 // --- 보조 함수 ---
 // =================================================================
@@ -252,7 +231,6 @@ static const char* get_state_name(SystemState state) {
         case STATE_IDLE:           return "IDLE";
         case STATE_DRYING:         return "DRYING";
         case STATE_COMPLETED:      return "COMPLETED";
-        case STATE_ERROR_OVERHEAT: return "ERROR_OVERHEAT";
         default:                   return "UNKNOWN";
     }
 }
@@ -346,12 +324,6 @@ static void display_status(DryerContext* ctx) {
             lcd_msg("건조 완료!");
             lcd_cmd(0xC0); // 두 번째 줄로 이동
             lcd_msg("START 버튼");
-            break;
-
-        case STATE_ERROR_OVERHEAT:
-            lcd_msg("! 과열 발생 !");
-            lcd_cmd(0xC0); // 두 번째 줄로 이동
-            lcd_msg("시스템 정지");
             break;
 
         default:
