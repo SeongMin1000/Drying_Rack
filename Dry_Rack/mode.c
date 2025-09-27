@@ -312,18 +312,41 @@ static void display_status(DryerContext* ctx) {
 
     // 2. 첫 번째 줄의 시작으로 커서 이동
     lcd_cmd(0x80);
+    
+    char buf[17]; // For sprintf
 
     // 3. 현재 상태(state)에 따라 다른 메시지 출력
     switch (ctx->state) {
         case STATE_IDLE:
             lcd_msg("모드 선택...");
-            // 2번째 줄에 다른 설정 표시 가능
+            lcd_cmd(0xC0); // 두 번째 줄로 이동
+            sprintf(buf, "시간:%dH 팬:%d", ctx->reserve_hours_setting, ctx->fan_speed_setting);
+            lcd_msg(buf);
+            break;
+
+        case STATE_DRYING:
+            lcd_msg("건조 중...");
+            lcd_cmd(0xC0); // 두 번째 줄로 이동
+
+            if (ctx->reserve_hours_setting > 0) {
+				unsigned long elapsed_time = millis() - ctx->state_entry_time;
+				unsigned long duration_ms = (unsigned long)ctx->reserve_hours_setting * ONE_HOUR_MS;
+				// 남은 시간이 음수가 되지 않도록 확인
+				unsigned long remaining_ms = (duration_ms > elapsed_time) ? (duration_ms - elapsed_time) : 0;
+				unsigned int remaining_min = remaining_ms / 60000;
+
+				sprintf(buf, "남은 시간: %d분", remaining_min);
+				lcd_msg(buf);
+            } 
+			else {
+                lcd_msg("자동 건조");
+            }
             break;
 
         case STATE_COMPLETED:
             lcd_msg("건조 완료!");
             lcd_cmd(0xC0); // 두 번째 줄로 이동
-            lcd_msg("START 버튼");
+            lcd_msg("옷을 꺼내주세요");
             break;
 
         default:
