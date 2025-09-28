@@ -8,6 +8,7 @@ typedef enum {
     STATE_IDLE,            // 대기 상태
     STATE_DRYING,          // 건조 중
     STATE_COMPLETED,       // 건조 완료
+	STATE_ERROR_OVERHEAT // 과열 오류
 } SystemState;
 
 // 팬 속도 정의

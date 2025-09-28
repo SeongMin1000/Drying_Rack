@@ -45,6 +45,7 @@ static char debug_buf[64];
 static void handle_idle(DryerContext* ctx);
 static void handle_drying(DryerContext* ctx);
 static void handle_completed(DryerContext* ctx);
+static void handle_error_overheat(DryerContext* ctx);
 
 static const char* get_state_name(SystemState state);
 static void change_state(DryerContext* ctx, SystemState new_state);
@@ -84,12 +85,23 @@ void context_init(DryerContext* ctx) {
 void state_machine_run(DryerContext* ctx) {
 	// 센서 입력값 갱신
 	update_sensors(ctx);
+	
+	// 과열 상태 확인
+	if (ctx->temp_value > TEMP_OVERHEAT_ADC && ctx->state != STATE_ERROR_OVERHEAT) {
+		change_state(ctx, STATE_ERROR_OVERHEAT);
+
+		// ================= 디버깅용 =================
+		sprintf(debug_buf, "Overheat detected! Temp ADC: %u\r\n", ctx->temp_value);
+		USART_transmit_string(debug_buf);
+		// ===========================================
+	}
 
 	// 현재 상태에 해당하는 핸들러 실행
 	switch (ctx->state) {
 		case STATE_IDLE:            handle_idle(ctx);           break;
 		case STATE_DRYING:          handle_drying(ctx);         break;
 		case STATE_COMPLETED:       handle_completed(ctx);      break;
+		case STATE_ERROR_OVERHEAT: handle_error_overheat(ctx); break;
 	}
 }
 
@@ -228,6 +240,13 @@ static void handle_completed(DryerContext* ctx) {
 	change_state(ctx, STATE_IDLE);
 }
 
+// 팬 과열 상태
+static void handle_error_overheat(DryerContext* ctx) {
+	set_fan_from_speed_level(FAN_OFF);
+
+	display_status(ctx);
+}
+
 // =================================================================
 // --- 보조 함수 ---
 // =================================================================
@@ -237,6 +256,7 @@ static const char* get_state_name(SystemState state) {
         case STATE_IDLE:           return "IDLE";
         case STATE_DRYING:         return "DRYING";
         case STATE_COMPLETED:      return "COMPLETED";
+		case STATE_ERROR_OVERHEAT: return "ERROR_OVERHEAT";
         default:                   return "UNKNOWN";
     }
 }
@@ -357,6 +377,12 @@ static void display_status(DryerContext* ctx) {
         case STATE_COMPLETED:
             lcd_msg("Dry completed!!");
             break;
+			
+		case STATE_ERROR_OVERHEAT:
+			lcd_msg("Overheat!!");
+			lcd_cmd(0xC0);
+			lcd_msg("System shutdown");
+			break;
 
         default:
             lcd_msg("unknown state");
