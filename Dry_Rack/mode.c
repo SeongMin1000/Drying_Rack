@@ -64,6 +64,7 @@ void context_init(DryerContext* ctx) {
 	ctx->reserve_hours_setting = 0;           // 예약 시간 설정을 0으로 초기화
 	ctx->all_dry = 0;                         // 모든 빨래가 건조되지 않은 상태로 초기화
 	ctx->state_entry_time = millis();         // 현재 상태 진입 시간을 타임스탬프로 기록
+	ctx->display_needs_update = 1;            // 초기 화면 표시를 위해 플래그 설정
 	for (int i = 0; i < MOISTURE_CHANNELS; i++) {
 		ctx->dry_flags[i] = 0;                // 각 센서별 건조 여부를 '젖음(0)'으로 초기화
 	}
@@ -106,6 +107,8 @@ static void handle_idle(DryerContext* ctx) {
         ctx->reserve_hours_setting++;
         if (ctx->reserve_hours_setting > 8) ctx->reserve_hours_setting = 0;
 
+        ctx->display_needs_update = 1; // LCD 업데이트 요청
+
         // ================= 디버깅용 =================
         sprintf(debug_buf, "Reserve button handled. Hours: %d\r\n", ctx->reserve_hours_setting);
         USART_transmit_string(debug_buf);
@@ -121,26 +124,30 @@ static void handle_idle(DryerContext* ctx) {
         if (current_speed > FAN_LOW_NOISE) current_speed = FAN_STRONG; // 0(OFF)은 건너뜀
         ctx->fan_speed_setting = (FanSpeed)current_speed;
 
+		ctx->display_needs_update = 1; // LCD 업데이트 요청
+
 		// ================= 디버깅용 =================
         sprintf(debug_buf, "Fan Mode handled. Mode: %d\r\n", ctx->fan_speed_setting);
         USART_transmit_string(debug_buf);
 		// ===========================================
     }
 
-    // 시작 버튼 플래그 확인
-    if (g_start_button_flag) {
-        g_start_button_flag = 0;
-
-		// ================= 디버깅용 =================
-        USART_transmit_string("Start button handled. Transitioning to DRYING state.\r\n");
-		// ===========================================
-
-		// 건조기 동작 상태로 전환
-        change_state(ctx, STATE_DRYING);
-    }
-	
-	display_status(ctx);
-}
+    	// 시작 버튼 플래그 확인
+        if (g_start_button_flag) {
+            g_start_button_flag = 0;
+    
+    		// ================= 디버깅용 =================
+            USART_transmit_string("Start button handled. Transitioning to DRYING state.\r\n");
+    		// ===========================================
+    
+    		// 건조기 동작 상태로 전환
+            change_state(ctx, STATE_DRYING);
+        }
+    	
+    	if (ctx->display_needs_update) {
+    		display_status(ctx);
+    		ctx->display_needs_update = 0;
+    	}}
 
 // 건조기 동작 상태
 static void handle_drying(DryerContext* ctx) {
@@ -197,6 +204,7 @@ static void handle_drying(DryerContext* ctx) {
 
 		pwm_set_duty_from_adc(avg_moist_value);
     }
+	display_status(ctx);
 }
 
 // 건조 완료 상태
@@ -218,8 +226,6 @@ static void handle_completed(DryerContext* ctx) {
         ctx->dry_flags[i] = 0;
     }
 	change_state(ctx, STATE_IDLE);
-	
-	display_status(ctx);
 }
 
 // =================================================================
@@ -248,8 +254,10 @@ static void change_state(DryerContext* ctx, SystemState new_state) {
 
 	ctx->state = new_state;
 	ctx->state_entry_time = millis();
+	ctx->display_needs_update = 1; // 상태 변경 시 LCD 업데이트 요청
 	
 	lcd_clear();
+	display_status(ctx);
 }
 
 // 센서값 업데이트 함수
@@ -308,24 +316,23 @@ static void set_fan_from_speed_level(FanSpeed speed) {
 
 static void display_status(DryerContext* ctx) {
     // 1. 화면을 깨끗하게 지우고 시작
-    lcd_clear();
 
     // 2. 첫 번째 줄의 시작으로 커서 이동
     lcd_cmd(0x80);
     
-    char buf[17]; // For sprintf
+    char buf[32]; // For sprintf
 
     // 3. 현재 상태(state)에 따라 다른 메시지 출력
     switch (ctx->state) {
         case STATE_IDLE:
-            lcd_msg("모드 선택...");
+            lcd_msg("MODE SELECT...");
             lcd_cmd(0xC0); // 두 번째 줄로 이동
-            sprintf(buf, "시간:%dH 팬:%d", ctx->reserve_hours_setting, ctx->fan_speed_setting);
+            sprintf(buf, "Time:%dH Fan:%d", ctx->reserve_hours_setting, ctx->fan_speed_setting);
             lcd_msg(buf);
             break;
 
         case STATE_DRYING:
-            lcd_msg("건조 중...");
+            lcd_msg("Drying...");
             lcd_cmd(0xC0); // 두 번째 줄로 이동
 
             if (ctx->reserve_hours_setting > 0) {
@@ -335,22 +342,24 @@ static void display_status(DryerContext* ctx) {
 				unsigned long remaining_ms = (duration_ms > elapsed_time) ? (duration_ms - elapsed_time) : 0;
 				unsigned int remaining_min = remaining_ms / 60000;
 
-				sprintf(buf, "남은 시간: %d분", remaining_min);
+				sprintf(buf, "Remain time:%dm", remaining_min);
 				lcd_msg(buf);
             } 
-			else {
-                lcd_msg("자동 건조");
+			else if(ctx->fan_speed_setting>0){
+                sprintf(buf, "Fan Power: %d", ctx->fan_speed_setting);
+				lcd_msg(buf);
             }
+			else{
+				lcd_msg("Auto drying");
+			}
             break;
 
         case STATE_COMPLETED:
-            lcd_msg("건조 완료!");
-            lcd_cmd(0xC0); // 두 번째 줄로 이동
-            lcd_msg("옷을 꺼내주세요");
+            lcd_msg("Dry completed!!");
             break;
 
         default:
-            lcd_msg("알 수 없는 상태");
+            lcd_msg("unknown state");
             break;
-    }
+	}
 }

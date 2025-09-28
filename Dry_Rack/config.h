@@ -63,16 +63,11 @@
 // --- 예약 모드 ---
 #define ONE_HOUR_MS (3600000UL) // 1시간 (밀리초)
 
-// --- 자동 모드 ---
-#define AUTO_MODE_FAN_ON_DURATION_MS  (1500000UL) // 팬 작동 시간: 25분
-#define AUTO_MODE_FAN_OFF_INTERVAL_MS (300000UL)  // 팬 휴식 시간: 5분
-
-
 // =================================================================
 // --- I2C 및 주변 장치 설정 ---
 // =================================================================
-#define LCD_I2C_ADDRESS (0x27 << 1) // I2C LCD 모듈 주소
-#define I2C_SCL_FREQUENCY 100000UL  // I2C 통신 속도 (100kHz)
+#define LCD_I2C_ADDRESS	  0x27      // I2C LCD 모듈 주소
+#define I2C_SCL_FREQUENCY 400000UL  // I2C 통신 속도 (400kHz)
 
 
 // =================================================================

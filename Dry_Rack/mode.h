@@ -33,6 +33,8 @@ typedef struct {
 
     unsigned long state_entry_time;            // 현재 상태 진입 시간 타임스탬프
 
+    uint8_t display_needs_update;              // LCD 업데이트 필요 여부 플래그
+
 } DryerContext;
 
 // 메인에선 아래 두 함수만 사용
