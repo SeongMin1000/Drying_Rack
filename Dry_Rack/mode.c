@@ -195,14 +195,14 @@ static void handle_drying(DryerContext* ctx) {
     else {
         // 수분 센서 값에 따라 자동으로 팬 속도 계산 및 구동
         
-		 // 여러 센서 값의 평균을 계산
-        uint16_t avg_moist_value = 0;
+		 // 센서 값의 최댓을 계산
+        uint16_t max_moist_value = 0;
         for (int i = 0; i < MOISTURE_CHANNELS; i++) {
-			if(avg_moist_value < ctx->moist_values[i])
-				avg_moist_value = ctx->moist_values[i];
+			if(max_moist_value < ctx->moist_values[i])
+				max_moist_value = ctx->moist_values[i];
         }
 
-		pwm_set_duty_from_adc(avg_moist_value);
+		pwm_set_duty_from_adc(max_moist_value);
     }
 	display_status(ctx);
 }
