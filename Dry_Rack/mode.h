@@ -8,7 +8,6 @@ typedef enum {
     STATE_IDLE,            // 대기 상태
     STATE_DRYING,          // 건조 중
     STATE_COMPLETED,       // 건조 완료
-	STATE_ERROR_OVERHEAT // 과열 오류
 } SystemState;
 
 // 팬 속도 정의
@@ -27,7 +26,6 @@ typedef struct {
     uint8_t reserve_hours_setting;             // 사용자가 설정한 예약 시간
     
     uint16_t moist_values[MOISTURE_CHANNELS];  // 습도 센서 값 배열
-    uint16_t temp_value;                       // 온도 센서 값
     
     uint8_t dry_flags[MOISTURE_CHANNELS];      // 0: 젖음, 1: 건조
     uint8_t all_dry;                           // 모든 빨래가 건조되었는지 표시
